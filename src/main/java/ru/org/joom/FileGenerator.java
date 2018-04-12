@@ -35,6 +35,6 @@ public class FileGenerator {
     }
 
     public static void main(String[] args) {
-        generate("test.txt",1000000,100);
+        generate("test.txt",100000,20);
     }
 }
