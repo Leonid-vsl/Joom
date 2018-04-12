@@ -4,9 +4,7 @@ import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Created by leonid on 03.04.2018.
- */
+
 public class FileGenerator {
 
     private static final Logger logger = Logger.getLogger(FileGenerator.class.getName());
@@ -35,6 +33,6 @@ public class FileGenerator {
     }
 
     public static void main(String[] args) {
-        generate("test.txt",100000,20);
+        generate("test.txt",20,3);
     }
 }

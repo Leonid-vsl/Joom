@@ -7,14 +7,12 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Created by leonid on 03.04.2018.
- */
+
 public class FileSorter {
 
     private static final Logger logger = Logger.getLogger(FileGenerator.class.getName());
 
-    private static final int BATCH_SIZE = 5000;
+    private static final int BATCH_SIZE = 2;
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
@@ -22,11 +20,21 @@ public class FileSorter {
 
         NavigableMap<Long, Long> positions = getPositions(args[0], chunkInfo);
 
-
-          swapPositions(args[0], chunkInfo, positions);
+        swapPositions(args[0], chunkInfo, positions);
 
         logger.log(Level.INFO, "File sorting complete");
 
+    }
+
+    private static Map.Entry<Long, Long> findMin(NavigableMap<Long, Long> positions) {
+
+        OptionalLong min = positions.values().stream().mapToLong(value -> value.longValue()).min();
+        for (Map.Entry<Long, Long> position : positions.entrySet()) {
+            if (position.getValue() == min.getAsLong()) {
+                return position;
+            }
+        }
+        return null;
     }
 
     private static void swapPositions(String arg, ChunkInfo chunkInfo, NavigableMap<Long, Long> positions) {
@@ -35,33 +43,18 @@ public class FileSorter {
             fileReader.seek(0);
 
             String swap = null;
-            Long fromPosition = 0L;
 
-
-
-            OptionalLong min = positions.values().stream().mapToLong(value -> value.longValue()).min();
-
-            for (Map.Entry<Long, Long> position : positions.entrySet()) {
-                if (position.getValue() == min.getAsLong()) {
-                    fromPosition = position.getKey();
-                    break;
-                }
-            }
+            Map.Entry<Long, Long> min = findMin(positions);
+            Long fromPosition = min.getKey();
 
 
             while (positions.size() > 0) {
 
                 Long toPosition = positions.get(fromPosition);
-                if(toPosition == null){
-                    OptionalLong min1 = positions.values().stream().mapToLong(value -> value.longValue()).min();
-
-                    for (Map.Entry<Long, Long> position : positions.entrySet()) {
-                        if (position.getValue() == min1.getAsLong()) {
-                            fromPosition = position.getKey();
-                            break;
-                        }
-                    }
+                if (toPosition == null) {
+                    min = findMin(positions);
                     swap = null;
+                    fromPosition = min.getKey();
                     continue;
                 }
                 positions.remove(fromPosition);
