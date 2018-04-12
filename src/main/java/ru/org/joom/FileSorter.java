@@ -38,44 +38,46 @@ public class FileSorter {
     }
 
     private static void swapPositions(String arg, ChunkInfo chunkInfo, NavigableMap<Long, Long> positions) {
-        try (RandomAccessFile fileReader = new RandomAccessFile(new File(arg), "rwd")) {
+        if (positions.size() > 0) {
+            try (RandomAccessFile fileReader = new RandomAccessFile(new File(arg), "rwd")) {
 
-            fileReader.seek(0);
+                fileReader.seek(0);
 
-            String swap = null;
+                String swap = null;
 
-            Map.Entry<Long, Long> min = findMin(positions);
-            Long fromPosition = min.getKey();
+                Map.Entry<Long, Long> min = findMin(positions);
+                Long fromPosition = min.getKey();
 
 
-            while (positions.size() > 0) {
+                while (positions.size() > 0) {
 
-                Long toPosition = positions.get(fromPosition);
-                if (toPosition == null) {
-                    min = findMin(positions);
-                    swap = null;
-                    fromPosition = min.getKey();
-                    continue;
+                    Long toPosition = positions.get(fromPosition);
+                    if (toPosition == null) {
+                        min = findMin(positions);
+                        swap = null;
+                        fromPosition = min.getKey();
+                        continue;
+                    }
+                    positions.remove(fromPosition);
+
+                    String startRow = readByOffset(fileReader, fromPosition, chunkInfo.getChunkLen());
+                    String endRow = readByOffset(fileReader, toPosition, chunkInfo.getChunkLen());
+
+                    if (swap != null) {
+                        writeByOffset(fileReader, toPosition, chunkInfo.getChunkLen(), swap);
+                    } else {
+                        writeByOffset(fileReader, toPosition, chunkInfo.getChunkLen(), startRow);
+                    }
+
+                    fromPosition = toPosition;
+                    swap = endRow;
+
                 }
-                positions.remove(fromPosition);
 
-                String startRow = readByOffset(fileReader, fromPosition, chunkInfo.getChunkLen());
-                String endRow = readByOffset(fileReader, toPosition, chunkInfo.getChunkLen());
 
-                if (swap != null) {
-                    writeByOffset(fileReader, toPosition, chunkInfo.getChunkLen(), swap);
-                } else {
-                    writeByOffset(fileReader, toPosition, chunkInfo.getChunkLen(), startRow);
-                }
-
-                fromPosition = toPosition;
-                swap = endRow;
-
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "error", e);
             }
-
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "error", e);
         }
     }
 
